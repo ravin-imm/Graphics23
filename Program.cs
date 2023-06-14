@@ -25,7 +25,63 @@ class MyWindow : Window {
       image.Source = mBmp;
       Content = image;
 
-      DrawMandelbrot (-0.5, 0, 1);
+      //DrawMandelbrot (-0.5, 0, 1);
+      MouseLeftButtonDown += OnMouseDown;
+   }
+
+   // Using Bresenham's algorithm
+   void DrawLine (int x1, int y1, int x2, int y2) {
+      try {
+         mBmp.Lock ();
+         if (x1 == x2) {
+            // Line parallel to Y-axis, simply plot the pixels
+            if (y2 < y1) (y1, y2) = (y2, y1);
+            for (int y = y1; y <= y2; y++)
+               SetPixel (x1, y, 255);
+         } else if (y1 == y2) {
+            // Line parallel to X-axis, simply plot the pixels
+            if (x2 < x1) (x1, x2) = (x2, x1);
+            for (int x = x1; x <= x2; x++)
+               SetPixel (x, y1, 255);
+         } else {
+            if (Math.Abs (y2 - y1) < Math.Abs (x2 - x1)) { // Slope is positive
+               if (x1 > x2) DrawLinePos (x2, y2, x1, y1);
+               else DrawLinePos (x1, y1, x2, y2);
+            } else {
+               if (y1 > y2) DrawLineNeg (x2, y2, x1, y1);
+               else DrawLineNeg (x1, y1, x2, y2);
+            }
+         }
+         mBmp.AddDirtyRect (new Int32Rect (Math.Min (x1, x2), Math.Min (y1, y2), Math.Abs (x1 - x2), Math.Abs (y1 - y2)));
+      } finally {
+         mBmp.Unlock ();
+      }
+   }
+
+   void DrawLinePos (int x1, int y1, int x2, int y2) {
+      int dx = x2 - x1, dy = y2 - y1, yDelta = 1;
+      if (dy < 0) { yDelta = -1; dy = -dy; }
+      int diff = 2 * dy - dx; // error
+      int y = y1;
+
+      for (int x = x1; x <= x2; x++) {
+         SetPixel (x, y, 255);
+         if (diff > 0) { y += yDelta; diff -= 2 * dx; } // If the difference is -ve, we add the next one
+         diff += 2 * dy;
+      }
+   }
+
+   void DrawLineNeg (int x1, int y1, int x2, int y2) {
+      int dx = x2 - x1, dy = y2 - y1, xDelta = 1;
+      if (dx < 0) { xDelta = -1; dx = -dx; }
+      int diff = 2 * dx - dy; // error
+      int x = x1;
+
+      for (int y = y1; y <= y2; y++) {
+         SetPixel (x, y, 255);
+         if (diff > 0) { x += xDelta; diff -= 2 * dy; } // If the difference is -ve, we add the next one
+         diff += 2 * dx;
+      }
    }
 
    void DrawMandelbrot (double xc, double yc, double zoom) {
@@ -71,6 +127,22 @@ class MyWindow : Window {
       }
    }
 
+   void OnMouseDown (object sender, MouseEventArgs e) {
+      try {
+         mBmp.Lock ();
+         mBase = mBmp.BackBuffer;
+         var pt = e.GetPosition (this);
+         int x = (int)pt.X, y = (int)pt.Y;
+         if (Nil (mPtPrev)) mPtPrev = pt;
+         else {
+            DrawLine ((int)mPtPrev.X, (int)mPtPrev.Y, x, y);
+            mPtPrev = new (int.MaxValue, int.MaxValue);
+         }
+      } finally { mBmp.Unlock (); }
+
+      bool Nil (Point pt) => pt.X == int.MaxValue && pt.Y == int.MaxValue;
+   }
+
    void DrawGraySquare () {
       try {
          mBmp.Lock ();
@@ -96,6 +168,7 @@ class MyWindow : Window {
    WriteableBitmap mBmp;
    int mStride;
    nint mBase;
+   Point mPtPrev = new (int.MaxValue, int.MaxValue);
 }
 
 internal class Program {
