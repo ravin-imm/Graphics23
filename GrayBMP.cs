@@ -76,6 +76,7 @@ class GrayBMP {
 
    /// <summary>Draws a line between the given endpoints, with the given shade of gray</summary>
    public void DrawLine (int x1, int y1, int x2, int y2, int gray) {
+      if (y1 == y2) { DrawHLine (x1, x2, y1, gray); return; }
       Begin ();
       int dx = Abs (x2 - x1), dy = -Abs (y2 - y1), error = dx + dy;
       int stepX = x1 < x2 ? 1 : -1, stepY = y1 < y2 ? 1 : -1;
@@ -100,6 +101,22 @@ class GrayBMP {
                error += dx;
                y1 += stepY; ptr += stepYPtr;
             }
+         }
+      }
+      End ();
+   }
+
+   void DrawHLine (int x1, int x2, int y, int gray) {
+      Begin ();
+      if (x2 < x1) (x1, x2) = (x2, x1);
+      Check (x1, y); Check (x2, y);
+      Dirty (x1, y, x2, y); byte bGray = (byte)gray;
+      unsafe {
+         byte* ptr = (byte*)(Buffer + y * mStride + x1);
+         while (true) {
+            *ptr = bGray;
+            if (x1 == x2) break;
+            x1++; ptr++;
          }
       }
       End ();

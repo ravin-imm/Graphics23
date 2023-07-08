@@ -7,6 +7,13 @@
     <UseWPF>true</UseWPF>
     <Optimize>true</Optimize>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<OutDir>bin\</OutDir>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="data\**" />
+    <EmbeddedResource Remove="data\**" />
+    <None Remove="data\**" />
+    <Page Remove="data\**" />
+  </ItemGroup>
 </Project>
