@@ -14,9 +14,11 @@ class PolyFill {
    }
 
    public void Fill (GrayBMP bmp, int color) {
-      mLines.Sort ();
-      // Current active lines along with their slopes for the given scan and the intersections with the current scanline
-      var (aLines, ixs) = (new List<(Line Ln, double Slope)> (), new List<int> ());
+      // Sort the lines in descending order based on their start y coordinate as
+      // it is easy to remove the last one after adding it into the active list.
+      mLines.Sort ((a, b) => b.CompareTo (a));
+      // Current active lines along with their slopeInvs for the given scan and the intersections with the current scanline
+      var (aLines, ixs) = (new List<(Line Ln, double SlopeInv)> (), new List<int> ());
       for (int y = 0; y < bmp.Height; y++) {
          ixs.Clear ();
          var ys = y + 0.5;
@@ -24,15 +26,15 @@ class PolyFill {
          for (int i = aLines.Count - 1; i >= 0; i--)
             if (aLines[i].Ln.Y1 < ys) aLines.RemoveAt (i);
          // Add lines that come into the scope of this scan
-         while (mLines.Any () && mLines[0].Y0 < ys) {
-            var ln = mLines[0];
+         while (mLines.Any () && mLines[^1].Y0 < ys) { // We sorted in descending order. So pick the last one
+            var ln = mLines[^1];
             aLines.Add ((ln, (double)(ln.X1 - ln.X0) / (ln.Y1 - ln.Y0)));
-            mLines.RemoveAt (0);
+            mLines.RemoveAt (mLines.Count - 1);
          }
 
          if (!aLines.Any ()) continue; // No active lines, continue
-         foreach (var (ln, slope) in aLines) 
-            ixs.Add ((int)(ln.X1 + slope * (ys - ln.Y1)));
+         foreach (var (ln, slopeInv) in aLines) 
+            ixs.Add ((int)(ln.X1 + slopeInv * (ys - ln.Y1)));
 
          var (nC, ya) = (ixs.Count, bmp.Height - y);
          if (nC % 2 != 0) throw new Exception ();
