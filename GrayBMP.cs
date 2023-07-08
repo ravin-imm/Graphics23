@@ -113,9 +113,7 @@ class GrayBMP {
       Dirty (x1, y, x2, y); byte bGray = (byte)gray;
       unsafe {
          byte* ptr = (byte*)(Buffer + y * mStride + x1);
-         for (int i = x1; i < x2; i++) {
-            *ptr = bGray; ptr++;
-         }
+         for (int i = x1; i < x2; i++, ptr++) *ptr = bGray;
       }
       End ();
    }

@@ -43,6 +43,8 @@ class PolyFill {
       }
    }
 
+   /// <summary>Queue to store the lines</summary>
+   /// Used the one implemeneted in A.15 assignment
    PriorityQueue<Line> mLines = new ();
 }
 
