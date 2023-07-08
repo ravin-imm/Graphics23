@@ -106,17 +106,15 @@ class GrayBMP {
       End ();
    }
 
-   void DrawHLine (int x1, int x2, int y, int gray) {
+   public void DrawHLine (int x1, int x2, int y, int gray) {
       Begin ();
       if (x2 < x1) (x1, x2) = (x2, x1);
       Check (x1, y); Check (x2, y);
       Dirty (x1, y, x2, y); byte bGray = (byte)gray;
       unsafe {
          byte* ptr = (byte*)(Buffer + y * mStride + x1);
-         while (true) {
-            *ptr = bGray;
-            if (x1 == x2) break;
-            x1++; ptr++;
+         for (int i = x1; i < x2; i++) {
+            *ptr = bGray; ptr++;
          }
       }
       End ();

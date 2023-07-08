@@ -18,6 +18,9 @@ public class PriorityQueue<T> where T : IComparable<T> {
       }
    }
 
+   /// <summary>Gets the first element in the queue without removing it</summary>
+   public T Peek () => mTs[1];
+
    /// <summary>Removes an element to the collection.</summary>
    /// As per the heap property the first element is always the lowest in the collection.
    /// We swap this with the last eleemnt and to maintain the heap property, we do 
