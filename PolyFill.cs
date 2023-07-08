@@ -10,10 +10,11 @@ class PolyFill {
       if (y0 == y1) return; // Don't add horizontal lines
       // We will try to keep Y0 as the smaller one always
       if (y0 > y1) { (y0, y1) = (y1, y0); (x0, x1) = (x1, x0); }
-      mLines.Enqueue (new Line (x0, y0, x1, y1));
+      mLines.Add (new Line (x0, y0, x1, y1));
    }
 
    public void Fill (GrayBMP bmp, int color) {
+      mLines.Sort ();
       // Current active lines along with their slopes for the given scan and the intersections with the current scanline
       var (aLines, ixs) = (new List<(Line Ln, double Slope)> (), new List<int> ());
       for (int y = 0; y < bmp.Height; y++) {
@@ -23,12 +24,10 @@ class PolyFill {
          for (int i = aLines.Count - 1; i >= 0; i--)
             if (aLines[i].Ln.Y1 < ys) aLines.RemoveAt (i);
          // Add lines that come into the scope of this scan
-         while (true) {
-            if (mLines.IsEmpty) break; // Nothing to add, break;
-            var ln = mLines.Peek ();
-            if (ln.Y0 < ys)
-               aLines.Add ((mLines.Dequeue (), (double)(ln.X1 - ln.X0) / (ln.Y1 - ln.Y0)));
-            else break;
+         while (mLines.Any () && mLines[0].Y0 < ys) {
+            var ln = mLines[0];
+            aLines.Add ((ln, (double)(ln.X1 - ln.X0) / (ln.Y1 - ln.Y0)));
+            mLines.RemoveAt (0);
          }
 
          if (!aLines.Any ()) continue; // No active lines, continue
@@ -43,13 +42,13 @@ class PolyFill {
       }
    }
 
-   /// <summary>Queue to store the lines</summary>
-   /// Used the one implemeneted in A.15 assignment
-   PriorityQueue<Line> mLines = new ();
+   /// <summary>Stores all the lines</summary>
+   List<Line> mLines = new ();
 }
 
 record Line (int X0, int Y0, int X1, int Y1) : IComparable<Line> {
-   /// <summary>Compares two Lines</summary>
+   /// <summary>Compares two lines and the one with less y component is considered.</summary>
+   /// If their y component is same then the x component is considered
    public int CompareTo (Line b) {
       int n = Y0.CompareTo (b.Y0); if (n != 0) return n;   
       return X0.CompareTo (b.X0);
