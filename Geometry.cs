@@ -9,7 +9,7 @@ readonly struct Complex {
    public Complex (double x, double y) => (X, Y) = (x, y);
    public override string ToString () => $"{X} + i{Y}";
 
-   public double Norm => Math.Sqrt (X * X + Y * Y);
+   public double Norm => Sqrt (X * X + Y * Y);
    public double NormSq => X * X + Y * Y;
 
    public static readonly Complex Zero = new (0, 0);
@@ -26,7 +26,7 @@ readonly struct Complex {
 readonly record struct Point2 (double X, double Y) {
    public (int X, int Y) Round () => ((int)(X + 0.5), (int)(Y + 0.5));
    /// <summary>Makes a radial move with the given radius and angle</summary>
-   public Point2 RadialMove (double r, double ang) => new (X + r * Math.Cos (ang), Y + r * Math.Sin (ang));
+   public Point2 RadialMove (double r, double ang) => new (X + r * Cos (ang), Y + r * Sin (ang));
 }
 
 /// <summary>A Line in 2 dimensions (A -> B)</summary>
